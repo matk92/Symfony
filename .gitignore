@@ -1,6 +1,8 @@
 # Created by https://www.toptal.com/developers/gitignore/api/phpstorm,symfony,macos
 # Edit at https://www.toptal.com/developers/gitignore?templates=phpstorm,symfony,macos
 
+.env
+
 ### macOS ###
 # General
 .DS_Store
