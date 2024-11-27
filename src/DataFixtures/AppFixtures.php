@@ -1,7 +1,5 @@
 <?php
 
-/** @noinspection PhpUnhandledExceptionInspection */
-
 namespace App\DataFixtures;
 
 use App\Entity\Category;
@@ -24,22 +22,16 @@ use DateTime;
 use DateTimeImmutable;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 class AppFixtures extends Fixture
 {
-    public const MAX_USERS = 10;
-    public const MAX_MEDIA = 100;
-    public const MAX_SUBSCRIPTIONS = 3;
-    public const MAX_SEASONS = 3;
-    public const MAX_EPISODES = 10;
+    private UserPasswordHasherInterface $passwordHasher;
 
-    public const PLAYLISTS_PER_USER = 3;
-    public const MAX_MEDIA_PER_PLAYLIST = 3;
-    public const MAX_LANGUAGE_PER_MEDIA = 3;
-    public const MAX_CATEGORY_PER_MEDIA = 3;
-    public const MAX_SUBSCRIPTIONS_HISTORY_PER_USER = 3;
-    public const MAX_COMMENTS_PER_MEDIA = 10;
-    public const MAX_PLAYLIST_SUBSCRIPTION_PER_USERS = 3;
+    public function __construct(UserPasswordHasherInterface $passwordHasher)
+    {
+        $this->passwordHasher = $passwordHasher;
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -66,6 +58,22 @@ class AppFixtures extends Fixture
         $this->addUserPlaylistSubscriptions($manager, $users, $playlists);
 
         $manager->flush();
+    }
+
+    protected function createUsers(ObjectManager $manager, array &$users): void
+    {
+        for ($i = 0; $i < 10; $i++) {
+            $user = new User();
+            $user->setEmail("test_$i@example.com");
+            $user->setUsername("test_$i");
+            $hashedPassword = $this->passwordHasher->hashPassword($user, 'coucou');
+            $user->setPassword($hashedPassword);
+            $user->setAccountStatus(UserAccountStatusEnum::ACTIVE);
+            $user->setRoles(['ROLE_USER']);
+            $users[] = $user;
+
+            $manager->persist($user);
+        }
     }
 
     protected function createSubscriptions(ObjectManager $manager, array $users, array &$subscriptions): void
@@ -120,20 +128,6 @@ class AppFixtures extends Fixture
 //            if ($media instanceof Movie) {
 //                $media->setDuration(duration: random_int(60, 180));
 //            }
-        }
-    }
-
-    protected function createUsers(ObjectManager $manager, array &$users): void
-    {
-        for ($i = 0; $i < self::MAX_USERS; $i++) {
-            $user = new User();
-            $user->setEmail(email: "test_$i@example.com");
-            $user->setUsername(username: "test_$i");
-            $user->setPassword(password: 'coucou');
-            $user->setAccountStatus(UserAccountStatusEnum::ACTIVE);
-            $users[] = $user;
-
-            $manager->persist(object: $user);
         }
     }
 
